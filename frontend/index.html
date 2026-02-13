@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mortgage Rate Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏠 Mortgage Rate Tracker</h1>
+      <p class="subtitle">Stay informed about mortgage rates and get alerts when rates drop</p>
+    </header>
+
+    <!-- Current Rates Section -->
+    <section class="rates-section">
+      <h2>Current Mortgage Rates</h2>
+      <div id="current-rates" class="rates-grid">
+        <div class="rate-card loading">Loading rates...</div>
+      </div>
+    </section>
+
+    <!-- Auth Section -->
+    <section class="auth-section">
+      <div class="auth-toggle">
+        <button id="show-login" class="active">Login</button>
+        <button id="show-register">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <h3>Login to Set Rate Alerts</h3>
+        <div class="form-group">
+          <label for="login-email">Email:</label>
+          <input type="email" id="login-email" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password:</label>
+          <input type="password" id="login-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+        <div id="login-error" class="error-message"></div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form" style="display: none;">
+        <h3>Create an Account</h3>
+        <div class="form-group">
+          <label for="register-email">Email:</label>
+          <input type="email" id="register-email" required>
+        </div>
+        <div class="form-group">
+          <label for="register-password">Password:</label>
+          <input type="password" id="register-password" required minlength="6">
+          <small>Minimum 6 characters</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+        <div id="register-error" class="error-message"></div>
+      </form>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
