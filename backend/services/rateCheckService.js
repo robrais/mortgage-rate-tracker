@@ -2,10 +2,10 @@ const pool = require('../config/database');
 const { sendRateAlert } = require('./emailService');
 
 async function checkRatesAndNotify() {
-  console.log('Checking rates for notifications...');
+  console.log('Checking rates for weekly notifications...');
   
   try {
-    // Get all active alerts with current rates
+    // Get all active alerts with most recent week's rates
     const [alerts] = await pool.query(`
       SELECT 
         ua.id as alert_id,
@@ -14,15 +14,16 @@ async function checkRatesAndNotify() {
         ua.target_rate,
         ua.last_notified_at,
         u.email,
-        mr.rate as current_rate
+        mr.rate as current_rate,
+        mr.rate_date
       FROM user_alerts ua
       JOIN users u ON ua.user_id = u.id
       JOIN mortgage_rates mr ON mr.mortgage_type = ua.mortgage_type 
-        AND mr.rate_date = CURDATE()
+        AND mr.rate_date = (SELECT MAX(rate_date) FROM mortgage_rates)
       WHERE ua.is_active = TRUE
         AND mr.rate <= ua.target_rate
         AND (ua.last_notified_at IS NULL 
-          OR ua.last_notified_at < CURDATE())
+          OR ua.last_notified_at < DATE_SUB(CURDATE(), INTERVAL 7 DAY))
     `);
 
     console.log(`Found ${alerts.length} alerts to process`);
@@ -50,7 +51,7 @@ async function checkRatesAndNotify() {
           VALUES (?, ?, ?, ?)
         `, [alert.user_id, alert.alert_id, alert.current_rate, alert.mortgage_type]);
 
-        console.log(`Notification sent to ${alert.email} for ${alert.mortgage_type}`);
+        console.log(`✅ Notification sent to ${alert.email} for ${alert.mortgage_type} at ${alert.current_rate}%`);
       } catch (error) {
         console.error(`Error processing alert ${alert.alert_id}:`, error);
       }

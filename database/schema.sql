@@ -10,11 +10,12 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Mortgage rates table (cached data)
+-- Mortgage rates table (cached data from weekly API updates)
+-- Note: Only 30 and 15 year fixed rates available from API
 CREATE TABLE IF NOT EXISTS mortgage_rates (
   id INT PRIMARY KEY AUTO_INCREMENT,
   rate_date DATE NOT NULL,
-  mortgage_type ENUM('30_YEAR_FIXED', '15_YEAR_FIXED', '30_YEAR_ARM', '15_YEAR_ARM') NOT NULL,
+  mortgage_type ENUM('30_YEAR_FIXED', '15_YEAR_FIXED') NOT NULL,
   rate DECIMAL(5, 3) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY unique_rate (rate_date, mortgage_type)
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS mortgage_rates (
 CREATE TABLE IF NOT EXISTS user_alerts (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
-  mortgage_type ENUM('30_YEAR_FIXED', '15_YEAR_FIXED', '30_YEAR_ARM', '15_YEAR_ARM') NOT NULL,
+  mortgage_type ENUM('30_YEAR_FIXED', '15_YEAR_FIXED') NOT NULL,
   target_rate DECIMAL(5, 3) NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
   last_notified_at TIMESTAMP NULL,
@@ -45,13 +46,9 @@ CREATE TABLE IF NOT EXISTS email_notifications (
   FOREIGN KEY (alert_id) REFERENCES user_alerts(id) ON DELETE CASCADE
 );
 
--- Insert some mock data for rates
+-- Insert some mock data for rates (will be replaced by real API data)
 INSERT INTO mortgage_rates (rate_date, mortgage_type, rate) VALUES
   (CURDATE(), '30_YEAR_FIXED', 6.875),
   (CURDATE(), '15_YEAR_FIXED', 6.125),
-  (CURDATE(), '30_YEAR_ARM', 6.250),
-  (CURDATE(), '15_YEAR_ARM', 5.750),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), '30_YEAR_FIXED', 6.920),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), '15_YEAR_FIXED', 6.180),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), '30_YEAR_ARM', 6.300),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), '15_YEAR_ARM', 5.800);
+  (DATE_SUB(CURDATE(), INTERVAL 7 DAY), '30_YEAR_FIXED', 6.920),
+  (DATE_SUB(CURDATE(), INTERVAL 7 DAY), '15_YEAR_FIXED', 6.180);
