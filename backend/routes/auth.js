@@ -20,8 +20,8 @@ router.post('/register', [
     const { email, password } = req.body;
 
     // Check if user exists
-    const [existingUsers] = await pool.query(
-      'SELECT id FROM users WHERE email = ?',
+    const { rows: existingUsers } = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
       [email]
     );
 
@@ -33,13 +33,13 @@ router.post('/register', [
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user
-    const [result] = await pool.query(
-      'INSERT INTO users (email, password) VALUES (?, ?)',
+    const { rows } = await pool.query(
+      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
       [email, hashedPassword]
     );
 
     const token = jwt.sign(
-      { userId: result.insertId, email },
+      { userId: rows[0].id, email },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -47,7 +47,7 @@ router.post('/register', [
     res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: { id: result.insertId, email }
+      user: { id: rows[0].id, email }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -69,8 +69,8 @@ router.post('/login', [
     const { email, password } = req.body;
 
     // Find user
-    const [users] = await pool.query(
-      'SELECT id, email, password FROM users WHERE email = ?',
+    const { rows: users } = await pool.query(
+      'SELECT id, email, password FROM users WHERE email = $1',
       [email]
     );
 

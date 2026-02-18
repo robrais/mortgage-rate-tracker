@@ -61,10 +61,10 @@ function mapMortgageType(apiFieldName) {
  * @returns {Promise<Object>} { success: boolean, savedCount: number, error: string }
  */
 async function saveRatesToDatabase(apiData) {
-  const connection = await pool.getConnection();
+  const client = await pool.connect();
   
   try {
-    await connection.beginTransaction();
+    await client.query('BEGIN');
     
     let savedCount = 0;
 
@@ -79,10 +79,10 @@ async function saveRatesToDatabase(apiData) {
         const mortgageType = mapMortgageType('frm_30');
         const rate = parseFloat(rates.frm_30);
         
-        await connection.query(
+        await client.query(
           `INSERT INTO mortgage_rates (rate_date, mortgage_type, rate) 
-           VALUES (?, ?, ?) 
-           ON DUPLICATE KEY UPDATE rate = VALUES(rate)`,
+           VALUES ($1, $2, $3) 
+           ON CONFLICT (rate_date, mortgage_type) DO UPDATE SET rate = EXCLUDED.rate`,
           [weekDate, mortgageType, rate]
         );
         savedCount++;
@@ -94,10 +94,10 @@ async function saveRatesToDatabase(apiData) {
         const mortgageType = mapMortgageType('frm_15');
         const rate = parseFloat(rates.frm_15);
         
-        await connection.query(
+        await client.query(
           `INSERT INTO mortgage_rates (rate_date, mortgage_type, rate) 
-           VALUES (?, ?, ?) 
-           ON DUPLICATE KEY UPDATE rate = VALUES(rate)`,
+           VALUES ($1, $2, $3) 
+           ON CONFLICT (rate_date, mortgage_type) DO UPDATE SET rate = EXCLUDED.rate`,
           [weekDate, mortgageType, rate]
         );
         savedCount++;
@@ -105,17 +105,17 @@ async function saveRatesToDatabase(apiData) {
       }
     }
 
-    await connection.commit();
+    await client.query('COMMIT');
     console.log(`✅ Successfully saved ${savedCount} rate(s) to database`);
     
     return { success: true, savedCount };
 
   } catch (error) {
-    await connection.rollback();
+    await client.query('ROLLBACK');
     console.error('❌ Error saving rates to database:', error.message);
     return { success: false, error: error.message };
   } finally {
-    connection.release();
+    client.release();
   }
 }
 

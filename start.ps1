@@ -50,7 +50,7 @@ if (-not (Test-Path '.env')) {
         Copy-Item .env.example .env
         Write-Host '✓ .env file created' -ForegroundColor Green
         Write-Host ''
-        Write-Host '⚠️  IMPORTANT: Edit .env file with your MySQL credentials!' -ForegroundColor Yellow
+        Write-Host '⚠️  IMPORTANT: Edit .env file with your DATABASE_URL if not using Docker Compose defaults!' -ForegroundColor Yellow
         Write-Host ''
     } else {
         Write-Host '❌ .env.example not found!' -ForegroundColor Red
@@ -58,22 +58,38 @@ if (-not (Test-Path '.env')) {
     }
 }
 
-# Check MySQL connection
+# Check Docker and PostgreSQL
 Write-Host ''
-Write-Host 'Checking MySQL connection...' -ForegroundColor Yellow
-$mysqlVersion = & mysql --version 2>$null
+Write-Host 'Checking PostgreSQL (Docker Compose)...' -ForegroundColor Yellow
+$dockerVersion = & docker --version 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host '⚠️  MySQL client not found in PATH' -ForegroundColor Yellow
+    Write-Host '⚠️  Docker not found in PATH' -ForegroundColor Yellow
     Write-Host ''
-    Write-Host 'Please ensure MySQL is installed and running:' -ForegroundColor Yellow
-    Write-Host '1. Download MySQL: https://dev.mysql.com/downloads/mysql/' -ForegroundColor White
-    Write-Host '2. Run the database schema: mysql -u root -p < database\schema.sql' -ForegroundColor White
+    Write-Host 'To run PostgreSQL locally, install Docker Desktop:' -ForegroundColor Yellow
+    Write-Host '  https://www.docker.com/products/docker-desktop/' -ForegroundColor White
+    Write-Host '  Then run: docker compose up -d' -ForegroundColor White
     Write-Host ''
 } else {
-    Write-Host ('✓ MySQL client found: ' + $mysqlVersion) -ForegroundColor Green
+    Write-Host ('✓ Docker found: ' + $dockerVersion) -ForegroundColor Green
+    
+    # Check if compose stack is running
+    $pgContainer = & docker compose ps --status running --format json 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
+    if (-not $pgContainer) {
+        Write-Host ''
+        Write-Host 'Starting PostgreSQL via Docker Compose...' -ForegroundColor Yellow
+        & docker compose up -d 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host '✓ PostgreSQL container started' -ForegroundColor Green
+            Start-Sleep -Seconds 3
+        } else {
+            Write-Host '⚠️  Could not start Docker Compose. Is Docker Desktop running?' -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host '✓ PostgreSQL container already running' -ForegroundColor Green
+    }
     Write-Host ''
-    Write-Host 'To setup the database, run:' -ForegroundColor Cyan
-    Write-Host '  mysql -u root -p < database\schema.sql' -ForegroundColor White
+    Write-Host 'To apply the database schema, run:' -ForegroundColor Cyan
+    Write-Host '  docker compose exec postgres psql -U mortgage_user -d mortgage_tracker -f /docker-entrypoint-initdb.d/01-schema.sql' -ForegroundColor White
     Write-Host ''
 }
 

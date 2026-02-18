@@ -4,7 +4,7 @@
 
 ### Step 1: Install Prerequisites
 
-You need Node.js and MySQL installed on your system.
+You need **Node.js** and **Docker Desktop** installed on your system.
 
 #### Install Node.js
 1. Go to https://nodejs.org/
@@ -12,27 +12,25 @@ You need Node.js and MySQL installed on your system.
 3. Run the installer and follow the prompts
 4. Restart PowerShell after installation
 
-#### Install MySQL
-1. Go to https://dev.mysql.com/downloads/mysql/
-2. Download MySQL Community Server
-3. Run the installer
-4. Remember the root password you set during installation
+#### Install Docker Desktop
+1. Go to https://www.docker.com/products/docker-desktop/
+2. Download and install Docker Desktop
+3. Start Docker Desktop and wait for it to be ready
 
-### Step 2: Setup Database
+### Step 2: Start PostgreSQL
 
-Open PowerShell or MySQL Workbench and run:
+From the project root, run:
 
 ```bash
-mysql -u root -p < database/schema.sql
+docker compose up -d
 ```
 
-Enter your MySQL root password when prompted.
+This starts a local PostgreSQL database. The schema is applied automatically on first run.
 
-**Or using MySQL Workbench:**
-1. Open MySQL Workbench
-2. Connect to your local MySQL server
-3. Open `database/schema.sql`
-4. Execute the script
+To verify it's running:
+```bash
+docker compose ps
+```
 
 ### Step 3: Configure Environment
 
@@ -42,9 +40,13 @@ The `.env` file has been created for you. Edit it with your settings:
 notepad .env
 ```
 
+**The default DATABASE_URL works with Docker Compose out of the box:**
+```env
+DATABASE_URL=postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker
+```
+
 **Update these values:**
 ```env
-DB_PASSWORD=your_mysql_password
 JWT_SECRET=change-this-to-any-random-string
 ```
 
@@ -101,18 +103,21 @@ http://localhost:3000
 - Node.js is not installed or not in PATH
 - Install Node.js and restart PowerShell
 
-### "Cannot connect to MySQL"
-- Verify MySQL is running: `mysql -u root -p`
-- Check credentials in `.env` file
-- Ensure database exists: `SHOW DATABASES;`
+### "Cannot connect to PostgreSQL"
+- Verify Docker is running: `docker compose ps`
+- Restart the container: `docker compose down; docker compose up -d`
+- Check DATABASE_URL in `.env` matches the docker-compose defaults
 
 ### "Port 3000 already in use"
 - Change `PORT=3001` in `.env` file
 - Or stop the process using port 3000
 
 ### No rates showing
-- Database schema not loaded
-- Run: `mysql -u root -p < database/schema.sql`
+- Database schema not loaded. Reset the container:
+  ```bash
+  docker compose down -v
+  docker compose up -d
+  ```
 
 ## 📚 Next Steps
 

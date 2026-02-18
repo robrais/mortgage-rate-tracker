@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mortgage-tracker-db
+    environment:
+      POSTGRES_USER: mortgage_user
+      POSTGRES_PASSWORD: mortgage_pass
+      POSTGRES_DB: mortgage_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+volumes:
+  pgdata:
