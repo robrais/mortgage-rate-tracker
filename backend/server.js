@@ -32,6 +32,13 @@ app.get('/api/health', (req, res) => {
 // Runs every Friday at 9 AM (Freddie Mac releases rates on Fridays)
 cron.schedule('0 9 * * 5', async () => {
   console.log('\n⏰ Running scheduled weekly rate update (Friday 9 AM)...');
+  
+  const { isDbAvailable } = require('./config/database');
+  if (!isDbAvailable()) {
+    console.warn('⚠️  Skipping scheduled update — database not available');
+    return;
+  }
+
   try {
     // Step 1: Fetch latest rates from API and save to database
     console.log('📊 Step 1: Fetching rates from API...');
@@ -53,6 +60,10 @@ cron.schedule('0 9 * * 5', async () => {
 
 // Manual trigger for testing
 app.post('/api/admin/check-rates', async (req, res) => {
+  const { isDbAvailable } = require('./config/database');
+  if (!isDbAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
   try {
     const result = await checkRatesAndNotify();
     res.json({ message: 'Rate check completed', result });
@@ -63,6 +74,10 @@ app.post('/api/admin/check-rates', async (req, res) => {
 
 // Manual trigger to fetch rates from API (for testing)
 app.post('/api/admin/update-rates', async (req, res) => {
+  const { isDbAvailable } = require('./config/database');
+  if (!isDbAvailable()) {
+    return res.status(503).json({ error: 'Database not available' });
+  }
   try {
     const result = await updateRatesFromAPI();
     if (result.success) {
