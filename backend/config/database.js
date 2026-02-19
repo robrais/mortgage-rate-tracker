@@ -6,8 +6,11 @@ let pool = null;
 let dbAvailable = false;
 
 try {
+  const connString = process.env.DATABASE_URL || 'postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker';
+  console.log('🔌 Connecting to database:', connString.substring(0, 40) + '...');
+
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker',
+    connectionString: connString,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
