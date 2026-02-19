@@ -13,7 +13,7 @@ Use prebuilt librariries as much as possible and avoid writing from scratch
 Make requests to a mortgage API that will be provided later to retrieve the mortgage interest rate data. The API supports querying by data range (landing page) and by individual date (good for checking daily if should send an email)
 Authentication/Authorization
 Email provider to send emails
-Structure storege (MySQL) to keep track of emails, target mortgage type (s) and target rate
+Structure storege to keep track of emails, target mortgage type (s) and target rate
 
 
 Technical Design: 
@@ -30,3 +30,5 @@ Sample response JSON
     }
   }
 ]
+
+Runtime using Render which provides free web server and postgress storage.
