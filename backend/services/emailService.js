@@ -1,46 +1,14 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Create transporter (configure with your email provider)
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  family: 4, // Force IPv4 — fixes ENETUNREACH on Render
-});
-
-// For development, create a test account
-async function createTestAccount() {
-  if (!process.env.SMTP_USER) {
-    const testAccount = await nodemailer.createTestAccount();
-    console.log('Test email account created:');
-    console.log('User:', testAccount.user);
-    console.log('Pass:', testAccount.pass);
-    
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
-  }
-  return transporter;
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
 async function sendRateAlert(userEmail, mortgageType, currentRate, targetRate) {
+  const mortgageTypeName = mortgageType.replace(/_/g, ' ');
+
   try {
-    const testTransporter = await createTestAccount();
-    
-    const mortgageTypeName = mortgageType.replace(/_/g, ' ');
-    
-    const mailOptions = {
-      from: process.env.SMTP_FROM || 'noreply@mortgagetracker.com',
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: userEmail,
       subject: `Rate Alert: ${mortgageTypeName} at ${currentRate}%`,
       html: `
@@ -58,13 +26,15 @@ async function sendRateAlert(userEmail, mortgageType, currentRate, targetRate) {
           </p>
         </div>
       `
-    };
+    });
 
-    const info = await testTransporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
-    console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
-    
-    return info;
+    if (error) {
+      console.error('Resend API error:', error);
+      throw new Error(error.message);
+    }
+
+    console.log(`✅ Email sent to ${userEmail} (id: ${data.id})`);
+    return data;
   } catch (error) {
     console.error('Error sending email:', error);
     throw error;
