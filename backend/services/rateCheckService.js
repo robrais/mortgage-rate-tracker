@@ -22,8 +22,9 @@ async function checkRatesAndNotify() {
         AND mr.rate_date = (SELECT MAX(rate_date) FROM mortgage_rates)
       WHERE ua.is_active = TRUE
         AND mr.rate <= ua.target_rate
+        -- TESTING: notify every minute (change back to '7 days' for production)
         AND (ua.last_notified_at IS NULL 
-          OR ua.last_notified_at < CURRENT_DATE - INTERVAL '7 days')
+          OR ua.last_notified_at < NOW() - INTERVAL '1 minute')
     `);
 
     console.log(`Found ${alerts.length} alerts to process`);
