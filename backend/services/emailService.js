@@ -4,6 +4,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
 async function sendRateAlert(userEmail, mortgageType, currentRate, targetRate) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not configured. Cannot send email alerts.');
+  }
   const mortgageTypeName = mortgageType.replace(/_/g, ' ');
 
   try {

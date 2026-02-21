@@ -4,7 +4,7 @@
 
 ### Step 1: Install Prerequisites
 
-You need **Node.js** and **Docker Desktop** installed on your system.
+You need **Node.js 20 or later** and **Docker Desktop** installed on your system.
 
 #### Install Node.js
 1. Go to https://nodejs.org/
@@ -48,12 +48,8 @@ DATABASE_URL=postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tr
 **Update these values:**
 ```env
 JWT_SECRET=change-this-to-any-random-string
-```
-
-**Leave empty for testing (uses mock email):**
-```env
-SMTP_USER=
-SMTP_PASS=
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@yourdomain.com
 ```
 
 ### Step 4: Install Dependencies

@@ -7,7 +7,8 @@ let dbAvailable = false;
 
 try {
   const connString = process.env.DATABASE_URL || 'postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker';
-  console.log('🔌 Connecting to database:', connString.substring(0, 40) + '...');
+  const maskedConn = connString.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:****@');
+  console.log('🔌 Connecting to database:', maskedConn);
 
   pool = new Pool({
     connectionString: connString,
