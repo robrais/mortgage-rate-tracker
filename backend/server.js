@@ -28,10 +28,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Schedule rate fetch and notification check
-// TESTING: Runs every minute (change back to '0 9 * * 5' for production — Friday 9 AM)
-cron.schedule('* * * * *', async () => {
-  console.log('\n⏰ Running scheduled rate update (every minute — TEST MODE)...');
+// Schedule weekly rate fetch and notification check
+// Runs every Friday at 9 AM (Freddie Mac releases rates on Fridays)
+cron.schedule('0 9 * * 5', async () => {
+  console.log('\n⏰ Running scheduled weekly rate update (Friday 9 AM)...');
   
   const { isDbAvailable } = require('./config/database');
   if (!isDbAvailable()) {
@@ -42,9 +42,7 @@ cron.schedule('* * * * *', async () => {
   try {
     // Step 1: Fetch latest rates from API and save to database
     console.log('📊 Step 1: Fetching rates from API...');
-    // test only - 
-    const updateResult = { success: true, savedCount: 5, rates: [] };
-    // const updateResult = await updateRatesFromAPI();
+    const updateResult = await updateRatesFromAPI();
     
     if (updateResult.success) {
       console.log(`✅ Rates updated: ${updateResult.savedCount} rate(s) saved`);
