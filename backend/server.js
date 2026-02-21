@@ -98,3 +98,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Access frontend at http://localhost:${PORT}`);
 });
+
+// Force Node.js to prefer IPv4 over IPv6 (fixes Render ENETUNREACH)
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
