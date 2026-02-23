@@ -7,7 +7,7 @@ const router = express.Router();
 // Get current rates (most recent week)
 router.get('/current', async (req, res) => {
   try {
-    const [rates] = await pool.query(`
+    const { rows: rates } = await pool.query(`
       SELECT mortgage_type, rate, rate_date 
       FROM mortgage_rates 
       WHERE rate_date = (SELECT MAX(rate_date) FROM mortgage_rates)
@@ -26,10 +26,10 @@ router.get('/history', async (req, res) => {
   try {
     const { weeks = 12 } = req.query; // Changed to weeks instead of days
     
-    const [rates] = await pool.query(`
+    const { rows: rates } = await pool.query(`
       SELECT mortgage_type, rate, rate_date 
       FROM mortgage_rates 
-      WHERE rate_date >= DATE_SUB(CURDATE(), INTERVAL ? WEEK)
+      WHERE rate_date >= CURRENT_DATE - ($1 || ' weeks')::INTERVAL
       ORDER BY rate_date DESC, mortgage_type
     `, [parseInt(weeks)]);
 
@@ -75,9 +75,9 @@ router.post('/update', async (req, res) => {
     for (const mockRate of mockRates) {
       await pool.query(`
         INSERT INTO mortgage_rates (rate_date, mortgage_type, rate) 
-        VALUES (CURDATE(), ?, ?)
-        ON DUPLICATE KEY UPDATE rate = ?
-      `, [mockRate.type, mockRate.rate, mockRate.rate]);
+        VALUES (CURRENT_DATE, $1, $2)
+        ON CONFLICT (rate_date, mortgage_type) DO UPDATE SET rate = EXCLUDED.rate
+      `, [mockRate.type, mockRate.rate]);
     }
 
     res.json({ message: 'Mock rates updated (use /fetch-now for real API)', rates: mockRates });

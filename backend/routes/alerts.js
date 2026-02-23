@@ -8,10 +8,10 @@ const router = express.Router();
 // Get user's alerts
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const [alerts] = await pool.query(`
+    const { rows: alerts } = await pool.query(`
       SELECT id, mortgage_type, target_rate, is_active, last_notified_at, created_at 
       FROM user_alerts 
-      WHERE user_id = ?
+      WHERE user_id = $1
       ORDER BY created_at DESC
     `, [req.userId]);
 
@@ -36,15 +36,16 @@ router.post('/', [
 
     const { mortgage_type, target_rate } = req.body;
 
-    const [result] = await pool.query(`
+    const { rows } = await pool.query(`
       INSERT INTO user_alerts (user_id, mortgage_type, target_rate) 
-      VALUES (?, ?, ?)
+      VALUES ($1, $2, $3)
+      RETURNING id
     `, [req.userId, mortgage_type, target_rate]);
 
     res.status(201).json({
       message: 'Alert created successfully',
       alert: {
-        id: result.insertId,
+        id: rows[0].id,
         mortgage_type,
         target_rate,
         is_active: true
@@ -73,13 +74,14 @@ router.put('/:id', [
 
     const updates = [];
     const values = [];
+    let paramIndex = 1;
 
     if (target_rate !== undefined) {
-      updates.push('target_rate = ?');
+      updates.push(`target_rate = $${paramIndex++}`);
       values.push(target_rate);
     }
     if (is_active !== undefined) {
-      updates.push('is_active = ?');
+      updates.push(`is_active = $${paramIndex++}`);
       values.push(is_active);
     }
 
@@ -92,7 +94,7 @@ router.put('/:id', [
     await pool.query(`
       UPDATE user_alerts 
       SET ${updates.join(', ')} 
-      WHERE user_id = ? AND id = ?
+      WHERE user_id = $${paramIndex++} AND id = $${paramIndex}
     `, values);
 
     res.json({ message: 'Alert updated successfully' });
@@ -109,7 +111,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
     await pool.query(`
       DELETE FROM user_alerts 
-      WHERE user_id = ? AND id = ?
+      WHERE user_id = $1 AND id = $2
     `, [req.userId, id]);
 
     res.json({ message: 'Alert deleted successfully' });

@@ -6,7 +6,7 @@ async function checkRatesAndNotify() {
   
   try {
     // Get all active alerts with most recent week's rates
-    const [alerts] = await pool.query(`
+    const { rows: alerts } = await pool.query(`
       SELECT 
         ua.id as alert_id,
         ua.user_id,
@@ -23,7 +23,7 @@ async function checkRatesAndNotify() {
       WHERE ua.is_active = TRUE
         AND mr.rate <= ua.target_rate
         AND (ua.last_notified_at IS NULL 
-          OR ua.last_notified_at < DATE_SUB(CURDATE(), INTERVAL 7 DAY))
+          OR ua.last_notified_at < CURRENT_DATE - INTERVAL '7 days')
     `);
 
     console.log(`Found ${alerts.length} alerts to process`);
@@ -42,13 +42,13 @@ async function checkRatesAndNotify() {
         await pool.query(`
           UPDATE user_alerts 
           SET last_notified_at = NOW() 
-          WHERE id = ?
+          WHERE id = $1
         `, [alert.alert_id]);
 
         // Log notification
         await pool.query(`
           INSERT INTO email_notifications (user_id, alert_id, rate, mortgage_type)
-          VALUES (?, ?, ?, ?)
+          VALUES ($1, $2, $3, $4)
         `, [alert.user_id, alert.alert_id, alert.current_rate, alert.mortgage_type]);
 
         console.log(`✅ Notification sent to ${alert.email} for ${alert.mortgage_type} at ${alert.current_rate}%`);
