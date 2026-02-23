@@ -25,7 +25,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // Create alert
 router.post('/', [
   authMiddleware,
-  body('mortgage_type').isIn(['30_YEAR_FIXED', '15_YEAR_FIXED', '30_YEAR_ARM', '15_YEAR_ARM']),
+  body('mortgage_type').isIn(['30_YEAR_FIXED', '15_YEAR_FIXED']),
   body('target_rate').isFloat({ min: 0, max: 20 })
 ], async (req, res) => {
   try {
