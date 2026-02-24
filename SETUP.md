@@ -2,30 +2,27 @@
 
 ## Prerequisites
 
-1. **Node.js** (v14 or higher) - [Download](https://nodejs.org/)
-2. **MySQL** (v5.7 or higher) - [Download](https://dev.mysql.com/downloads/mysql/)
+1. **Node.js** (v20 or higher) - [Download](https://nodejs.org/)
+2. **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/) (runs PostgreSQL)
 
 ## Installation Steps
 
-### 1. Install Dependencies
+### 1. Start PostgreSQL
+
+From the project root, start the database with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+This starts a local PostgreSQL instance and applies the schema automatically on first run.
+
+### 2. Install Dependencies
 
 ```bash
 cd backend
 npm install
 ```
-
-### 2. Setup Database
-
-Start MySQL and run the schema:
-
-```bash
-mysql -u root -p < ../database/schema.sql
-```
-
-Or manually:
-1. Open MySQL Workbench or command line
-2. Copy and paste the contents of `database/schema.sql`
-3. Execute the SQL
 
 ### 3. Configure Environment
 
@@ -36,9 +33,16 @@ cp ../.env.example .env
 ```
 
 Edit `.env` and update with your settings:
-- Database credentials
+- `DATABASE_URL` - PostgreSQL connection string (default works with Docker Compose out of the box)
 - JWT secret (use a random string)
-- SMTP settings (optional - will use test account if empty)
+- `RESEND_API_KEY` and `EMAIL_FROM` for email notifications
+
+```env
+DATABASE_URL=postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker
+JWT_SECRET=change-this-to-a-random-string
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@yourdomain.com
+```
 
 ### 4. Start the Server
 
@@ -77,7 +81,7 @@ Manually trigger the rate check:
 curl -X POST http://localhost:3000/api/admin/check-rates
 ```
 
-Check the console for test email URLs (using Ethereal test account).
+Check the console for any email-related output.
 
 ### 4. Update Rates (Simulate API Call)
 
@@ -89,23 +93,21 @@ This will generate random rates. Then trigger the rate check again to test notif
 
 ## Notes
 
-- The app uses Ethereal Email for testing by default (no real emails sent)
-- To send real emails, configure SMTP settings in `.env`
-- For Gmail, you need to use an "App Password" - [Guide](https://support.google.com/accounts/answer/185833)
+- The app uses [Resend](https://resend.com/) for email notifications
+- Configure `RESEND_API_KEY` and `EMAIL_FROM` in `.env` for real emails
 - The cron job runs daily at 9 AM - modify in `server.js` if needed
 
 ## Troubleshooting
 
 ### Database Connection Issues
-- Verify MySQL is running
-- Check credentials in `.env`
-- Ensure database exists: `CREATE DATABASE mortgage_tracker;`
+- Verify Docker is running: `docker compose ps`
+- Restart the container: `docker compose down; docker compose up -d`
+- Check `DATABASE_URL` in `.env` matches the docker-compose defaults
 
 ### Port Already in Use
 - Change PORT in `.env` file
 - Or kill the process using port 3000
 
 ### Email Not Sending
-- Check SMTP credentials
-- For development, leave SMTP settings empty to use test account
-- Check console for test email preview URLs
+- Configure `RESEND_API_KEY` and `EMAIL_FROM` in `.env`
+- Check console for error messages
