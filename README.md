@@ -9,13 +9,13 @@ A full-stack web application that tracks mortgage refinance rates and sends emai
 - 🎯 **Custom Rate Alerts** - Set target rates for specific mortgage types
 - 📧 **Email Notifications** - Automatic email alerts when rates meet your targets
 - ⏰ **Daily Monitoring** - Scheduled daily checks for rate changes
-- 💾 **MySQL Database** - Structured storage for users, rates, and alerts
+- 💾 **PostgreSQL Database** - Structured storage for users, rates, and alerts
 
 ## Tech Stack
 
 **Backend:**
 - Node.js & Express
-- MySQL database with mysql2
+- PostgreSQL database with pg
 - JWT authentication with bcryptjs
 - Nodemailer for email notifications
 - node-cron for scheduled tasks
@@ -31,7 +31,7 @@ A full-stack web application that tracks mortgage refinance rates and sends emai
 vigilant-octo-giggle/
 ├── backend/
 │   ├── config/
-│   │   └── database.js          # MySQL connection pool
+│   │   └── database.js          # PostgreSQL connection pool
 │   ├── middleware/
 │   │   └── auth.js              # JWT authentication middleware
 │   ├── routes/
@@ -59,7 +59,7 @@ vigilant-octo-giggle/
 ### Prerequisites
 
 - Node.js (v14+)
-- MySQL (v5.7+)
+- PostgreSQL (v13+)
 
 ### Installation
 
@@ -76,20 +76,20 @@ vigilant-octo-giggle/
 
 3. **Setup the database:**
    ```bash
-   mysql -u root -p < ../database/schema.sql
+   psql -U postgres -f ../database/schema.sql
    ```
    
-   Or run the SQL manually in MySQL Workbench
+   Or run the SQL manually in pgAdmin
 
 4. **Configure environment variables:**
    ```bash
    cp ../.env.example .env
    ```
    
-   Edit `.env` with your MySQL credentials:
+   Edit `.env` with your PostgreSQL credentials:
    ```
    DB_HOST=localhost
-   DB_USER=root
+   DB_USER=postgres
    DB_PASSWORD=your_password
    DB_NAME=mortgage_tracker
    JWT_SECRET=change-this-to-a-random-string
@@ -179,11 +179,11 @@ For Gmail, use an [App Password](https://support.google.com/accounts/answer/1858
 
 ### Database Connection
 
-Update `.env` with your MySQL credentials:
+Update `.env` with your PostgreSQL credentials:
 
 ```env
 DB_HOST=localhost
-DB_USER=root
+DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=mortgage_tracker
 ```
@@ -208,7 +208,7 @@ npm run dev
 ## Troubleshooting
 
 **Database connection errors:**
-- Ensure MySQL is running
+- Ensure PostgreSQL is running
 - Verify credentials in `.env`
 - Check that database exists
 
