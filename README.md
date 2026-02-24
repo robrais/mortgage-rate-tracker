@@ -9,13 +9,13 @@ A full-stack web application that tracks mortgage refinance rates and sends emai
 - 🎯 **Custom Rate Alerts** - Set target rates for specific mortgage types
 - 📧 **Email Notifications** - Automatic email alerts when rates meet your targets
 - ⏰ **Daily Monitoring** - Scheduled daily checks for rate changes
-- 💾 **MySQL Database** - Structured storage for users, rates, and alerts
+- 💾 **PostgreSQL Database** - Structured storage for users, rates, and alerts
 
 ## Tech Stack
 
 **Backend:**
 - Node.js & Express
-- MySQL database with mysql2
+- PostgreSQL database with pg
 - JWT authentication with bcryptjs
 - Nodemailer for email notifications
 - node-cron for scheduled tasks
@@ -31,7 +31,7 @@ A full-stack web application that tracks mortgage refinance rates and sends emai
 vigilant-octo-giggle/
 ├── backend/
 │   ├── config/
-│   │   └── database.js          # MySQL connection pool
+│   │   └── database.js          # PostgreSQL connection pool
 │   ├── middleware/
 │   │   └── auth.js              # JWT authentication middleware
 │   ├── routes/
@@ -58,44 +58,40 @@ vigilant-octo-giggle/
 
 ### Prerequisites
 
-- Node.js (v14+)
-- MySQL (v5.7+)
+- Node.js (v20+)
+- Docker Desktop (runs PostgreSQL)
 
 ### Installation
 
 1. **Clone and navigate to the project:**
    ```bash
-   cd vigilant-octo-giggle
+   cd mortgage-rate-tracker
    ```
 
-2. **Install backend dependencies:**
+2. **Start PostgreSQL via Docker Compose:**
+   ```bash
+   docker compose up -d
+   ```
+   The schema is applied automatically on first run.
+
+3. **Install backend dependencies:**
    ```bash
    cd backend
    npm install
    ```
-
-3. **Setup the database:**
-   ```bash
-   mysql -u root -p < ../database/schema.sql
-   ```
-   
-   Or run the SQL manually in MySQL Workbench
 
 4. **Configure environment variables:**
    ```bash
    cp ../.env.example .env
    ```
    
-   Edit `.env` with your MySQL credentials:
+   Edit `.env` with your settings:
    ```
-   DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=your_password
-   DB_NAME=mortgage_tracker
+   DATABASE_URL=postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker
    JWT_SECRET=change-this-to-a-random-string
+   RESEND_API_KEY=re_your_api_key_here
+   EMAIL_FROM=noreply@yourdomain.com
    ```
-   
-   *Note: SMTP settings can be left empty for development (uses test email account)*
 
 5. **Start the server:**
    ```bash
@@ -135,7 +131,7 @@ curl -X POST http://localhost:3000/api/rates/update
 curl -X POST http://localhost:3000/api/admin/check-rates
 ```
 
-Check the server console for test email preview URLs (Ethereal email)
+Check the server console for any email-related output.
 
 ### 5. Automatic Daily Checks
 - The app automatically checks rates daily at 9 AM
@@ -165,27 +161,19 @@ Check the server console for test email preview URLs (Ethereal email)
 
 ### Email Setup
 
-For production, configure SMTP in `.env`:
+Configure email notifications via [Resend](https://resend.com/) in `.env`:
 
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM=noreply@mortgagetracker.com
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@yourdomain.com
 ```
-
-For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833)
 
 ### Database Connection
 
-Update `.env` with your MySQL credentials:
+Update `.env` with your PostgreSQL connection string:
 
 ```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=mortgage_tracker
+DATABASE_URL=postgresql://mortgage_user:mortgage_pass@localhost:5432/mortgage_tracker
 ```
 
 ## Development
@@ -208,18 +196,16 @@ npm run dev
 ## Troubleshooting
 
 **Database connection errors:**
-- Ensure MySQL is running
-- Verify credentials in `.env`
-- Check that database exists
+- Ensure PostgreSQL is running (`docker compose ps`)
+- Verify `DATABASE_URL` in `.env` matches docker-compose defaults
 
 **Port 3000 already in use:**
 - Change `PORT` in `.env`
 - Or stop the conflicting process
 
 **Emails not sending:**
-- For development, leave SMTP settings empty for test account
-- Check server console for preview URLs
-- For production, verify SMTP credentials
+- Configure `RESEND_API_KEY` and `EMAIL_FROM` in `.env`
+- Check server console for error messages
 
 ## License
 
