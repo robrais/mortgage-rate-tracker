@@ -77,7 +77,7 @@ async function migrate() {
       await client.query('ROLLBACK');
       console.error('❌ Migration failed — rolled back.');
       console.error(err.message);
-      process.exit(1);
+      throw err;
     } finally {
       client.release();
     }

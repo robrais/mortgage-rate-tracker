@@ -24,14 +24,15 @@ router.get('/current', async (req, res) => {
 // Get historical rates (for date range)
 router.get('/history', async (req, res) => {
   try {
-    const { weeks = 12 } = req.query; // Changed to weeks instead of days
+    const weeksRaw = req.query.weeks;
+    const weeks = Math.min(Math.max(parseInt(weeksRaw) || 12, 1), 104);
     
     const { rows: rates } = await pool.query(`
       SELECT mortgage_type, rate, rate_date 
       FROM mortgage_rates 
       WHERE rate_date >= CURRENT_DATE - ($1 || ' weeks')::INTERVAL
       ORDER BY rate_date DESC, mortgage_type
-    `, [parseInt(weeks)]);
+    `, [weeks]);
 
     res.json({ rates });
   } catch (error) {
